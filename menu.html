@@ -4,31 +4,34 @@
   <meta charset="UTF-8">
   <title>Lions Cafe - QR Menü</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Font Awesome CSS link -->
+  
+  <!-- Minify edilmiş Font Awesome (CDN üzerinden) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-  <!-- CSS dosyası -->
+  <!-- Dış CSS dosyası -->
   <link rel="stylesheet" href="style.css">
+
+  <!-- Dahili CSS: GPU hızlandırmalı animasyon ve geçiş ayarları eklendi -->
   <style>
-    /* html, body ve wrapper ayarları */
+    /* Genel Ayarlar */
     html, body {
       margin: 0;
       padding: 0;
       height: 100%;
     }
     body {
-    font-family: 'Montserrat', sans-serif;
-    background-color: #ffffff; /* Beyaz zemin */
-    color: #000000;           /* Siyah metin */
-    overflow-x: hidden;       /* Yatay scrollbar istemiyoruz */
-}
+      font-family: 'Montserrat', sans-serif;
+      background-color: #ffffff;
+      color: #000000;
+      overflow-x: hidden;
+    }
     .page-wrapper {
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
-    /* Header - Fixed */
+    /* Header - Fixed, GPU hızlandırması için will-change eklenmiştir */
     .header {
       position: fixed;
       top: 0;
@@ -47,6 +50,7 @@
       transition: all 0.4s ease;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       z-index: 1000;
+      will-change: transform, opacity;
     }
     .header::before {
       content: "";
@@ -76,17 +80,17 @@
       display: flex;
       flex-direction: column;
       transition: transform 0.4s ease;
-      color: #ffd700; /* Altın rengi */
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7); /* Beyaz arka plan üzerinde fark edilir */
+      color: #ffd700;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
     }
     .header-text h1 {
-      font-size: 20px;
+      font-size: 18px;
       line-height: 1.2;
       text-align: left;
     }
     .header-text p {
-      font-size: 16px;
-      opacity: 0.8;
+      font-size: 14px;
+      opacity: 1;
       text-align: left;
     }
     /* Dil Seçim Dropdown */
@@ -139,14 +143,14 @@
     .header.scrolled .header-text {
       transform: translateX(-10px);
     }
-    /* Ana içerik */
+    /* Ana İçerik */
     .main-content {
       flex: 1;
-      margin-top: 110px; /* Header ve arama alanı için boşluk */
+      margin-top: 110px;
     }
     /* Arama Alanı */
     #searchContainer {
-      padding: 10px 10px;
+      padding: 10px;
       background-color: #fff;
     }
     #searchContainer input {
@@ -161,9 +165,7 @@
       padding: 10px 20px;
       background-color: #fff;
     }
-    /* Menü Konteyneri */
-
-    /* Footer - Normal belge akışında */
+    /* Footer */
     .footer {
       background-color: #e6edf9;
       color: #000000;
@@ -189,7 +191,6 @@
       background-color: #444;
     }
     .footer p {
-      
       margin: 5px 0 0;
       font-size: 0.9em;
     }
@@ -203,7 +204,8 @@
     <!-- Header (Fixed) -->
     <header class="header" id="header">
       <div class="logo-section">
-        <img src="logolion.png" alt="Örnek Restoran Logosu" class="logo">
+        <!-- Lazy loading eklendi -->
+        <img src="logolion.png" alt="Örnek Restoran Logosu" class="logo" loading="lazy">
         <div class="header-text">
           <h1 id="restaurantName">Lions Cafe Lounge</h1>
           <p id="restaurantTagline">Günün En Güzel Anı</p>
@@ -229,14 +231,14 @@
       <div id="searchResults"></div>
       <!-- Menü Kategorileri ve Ürünler -->
       <div class="menu-container" id="menuContent"></div>
-      <!-- Ürün Resmi Modalı -->
+      <!-- Ürün Resmi Modalı (lazy loading uygulanmış) -->
       <div id="imageModal" class="image-modal">
         <span id="modalClose" class="close">&times;</span>
-        <img id="modalImage" class="modal-content" src="" alt="Ürün Resmi">
+        <img id="modalImage" class="modal-content" src="" alt="Ürün Resmi" loading="lazy">
       </div>
     </div>
 
-    <!-- Footer (Belge Akışında, en altta) -->
+    <!-- Footer -->
     <footer class="footer">
       <div class="review-buttons">
         <a href="https://www.google.com/maps/place/L%C4%B0ONS+CAFE+LOUNGE/@36.1932678,36.1321944,17z/data=!3m1!4b1!4m6!3m5!1s0x1525c371e3aa562b:0xa87281f590c946ec!8m2!3d36.1932678!4d36.1321944!16s%2Fg%2F11vx659nsd?entry=ttu&g_ep=EgoyMDI1MDMwNC4wIKXMDSoASAFQAw%3D%3D" target="_blank" id="googleReviewLink">
@@ -250,155 +252,250 @@
     </footer>
   </div>
 
-  <!-- Firebase JS SDK -->
+  <!-- Firebase SDK'larını defer olmadan yükleyerek, tanımlı olduklarından emin oluyoruz -->
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
-  <!-- JavaScript Kodları -->
+  <!-- Custom JavaScript: Tüm kodlarımızın çalışması için window.onload kullanıyoruz -->
   <script>
-    // Firebase yapılandırması
-    const firebaseConfig = {
-      apiKey: "AIzaSyA16M_6xOrUGEn9YCdzIFxBYXr-9ST7IWY",
-      authDomain: "qrmenuapplication-9b920.firebaseapp.com",
-      databaseURL: "https://qrmenuapplication-9b920-default-rtdb.firebaseio.com",
-      projectId: "qrmenuapplication-9b920",
-      storageBucket: "qrmenuapplication-9b920.appspot.com",
-      messagingSenderId: "1050979828232",
-      appId: "1:1050979828232:web:54d81e21056193bee147bd",
-      measurementId: "G-C3S611TREX"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+    window.onload = function() {
+      // Firebase yapılandırması
+      const firebaseConfig = {
+        apiKey: "AIzaSyA16M_6xOrUGEn9YCdzIFxBYXr-9ST7IWY",
+        authDomain: "qrmenuapplication-9b920.firebaseapp.com",
+        databaseURL: "https://qrmenuapplication-9b920-default-rtdb.firebaseio.com",
+        projectId: "qrmenuapplication-9b920",
+        storageBucket: "qrmenuapplication-9b920.appspot.com",
+        messagingSenderId: "1050979828232",
+        appId: "1:1050979828232:web:54d81e21056193bee147bd",
+        measurementId: "G-C3S611TREX"
+      };
+      
+      // Firebase başlatma
+      firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
 
-    let selectedLanguage = 'tr'; // Başlangıçta varsayılan dil Türkçe
-    window.allProducts = []; // Global ürün dizisini tanımlıyoruz
+      let selectedLanguage = 'tr'; // Başlangıçta varsayılan dil Türkçe
+      window.allProducts = []; // Global ürün dizisi
 
-    // Dil seçimi dropdown toggle
-    document.getElementById('languageButton').addEventListener('click', () => {
-      document.getElementById('languageDropdown').classList.toggle('show');
-    });
-    // Sayfa yüklendiğinde, localStorage'de saklı dil varsa onu al; yoksa varsayılan Türkçe kullan
-    document.addEventListener('DOMContentLoaded', () => {
-      const lang = localStorage.getItem('selectedLanguage');
-      if (lang) {
-        selectedLanguage = lang;
+      // Dil Seçim Dropdown Toggle
+      document.getElementById('languageButton').addEventListener('click', () => {
+        document.getElementById('languageDropdown').classList.toggle('show');
+      });
+
+      // Sayfa yüklendiğinde localStorage'den dili al ve ayarla
+      const storedLang = localStorage.getItem('selectedLanguage');
+      if (storedLang) {
+        selectedLanguage = storedLang;
       }
       setLanguage(selectedLanguage);
-    });
 
-    function changeLanguage(lang) {
-      setLanguage(lang);
-      document.getElementById('languageDropdown').classList.remove('show');
-      document.getElementById('languageButton').innerText = (lang === 'tr') ? 'Türkçe' : 'English';
-    }
-
-    function setLanguage(lang) {
-      selectedLanguage = lang;
-      localStorage.setItem('selectedLanguage', lang);
-      fetchMenuItems();
-      loadHeaderText();
-      loadFooterText();
-    }
-
-    // Header metinlerini (Firebase üzerinden veya fallback) ve arama placeholder'ını güncelle
-    function loadHeaderText() {
-      const restaurantNameElem = document.getElementById('restaurantName');
-      const restaurantTaglineElem = document.getElementById('restaurantTagline');
-      const headerTextsRef = database.ref('Languages/headerTexts');
-      headerTextsRef.once('value', (snapshot) => {
-        const texts = snapshot.val();
-        if (texts) {
-          restaurantNameElem.textContent = texts['restaurantName_' + selectedLanguage] || texts['restaurantName_tr'];
-          restaurantTaglineElem.textContent = texts['tagline_' + selectedLanguage] || texts['tagline_tr'];
-        } else {
-          // Fallback: Eğer Firebase verisi gelmezse
-          restaurantNameElem.textContent = "Lions Cafe Lounge";
-          restaurantTaglineElem.textContent = (selectedLanguage === 'tr') ? "Günün En Güzel Anı" : "The Best Moment of the Day";
-        }
-      });
-      const searchInput = document.getElementById('searchInput');
-      searchInput.placeholder = (selectedLanguage === 'tr') ? "Menüde ara..." : "Search menu...";
-    }
-
-    // Footer metnini ve Google yorum linkini seçili dile göre güncelle
-    function loadFooterText() {
-      const footerTextElem = document.getElementById('footerText');
-      if(selectedLanguage === 'tr') {
-        footerTextElem.innerHTML = 'QrMenu bir <strong>ERKAYASOFT</strong> hizmetidir';
-      } else {
-        footerTextElem.innerHTML = 'QrMenu is a service of <strong>ERKAYASOFT</strong>';
+      function changeLanguage(lang) {
+        setLanguage(lang);
+        document.getElementById('languageDropdown').classList.remove('show');
+        document.getElementById('languageButton').innerText = (lang === 'tr') ? 'Türkçe' : 'English';
       }
-      const googleReviewLink = document.getElementById('googleReviewLink');
-      if(googleReviewLink) {
-         googleReviewLink.innerHTML = (selectedLanguage === 'tr') ?
+      // Bu fonksiyonu global hale getiriyoruz
+      window.changeLanguage = changeLanguage;
+
+      function setLanguage(lang) {
+        selectedLanguage = lang;
+        localStorage.setItem('selectedLanguage', lang);
+        fetchMenuItems();
+        loadHeaderText();
+        loadFooterText();
+      }
+
+      function loadHeaderText() {
+        const restaurantNameElem = document.getElementById('restaurantName');
+        const restaurantTaglineElem = document.getElementById('restaurantTagline');
+        const headerTextsRef = database.ref('Languages/headerTexts');
+        headerTextsRef.once('value', (snapshot) => {
+          const texts = snapshot.val();
+          if (texts) {
+            restaurantNameElem.textContent = texts['restaurantName_' + selectedLanguage] || texts['restaurantName_tr'];
+            restaurantTaglineElem.textContent = texts['tagline_' + selectedLanguage] || texts['tagline_tr'];
+          } else {
+            restaurantNameElem.textContent = "Lions Cafe Lounge";
+            restaurantTaglineElem.textContent = (selectedLanguage === 'tr') ? "Günün En Güzel Anı" : "The Best Moment of the Day";
+          }
+        });
+        const searchInput = document.getElementById('searchInput');
+        searchInput.placeholder = (selectedLanguage === 'tr') ? "Menüde ara..." : "Search menu...";
+      }
+
+      function loadFooterText() {
+        const footerTextElem = document.getElementById('footerText');
+        if(selectedLanguage === 'tr') {
+          footerTextElem.innerHTML = 'QrMenu bir <strong>ERKAYASOFT</strong> hizmetidir';
+        } else {
+          footerTextElem.innerHTML = 'QrMenu is a service of <strong>ERKAYASOFT</strong>';
+        }
+        const googleReviewLink = document.getElementById('googleReviewLink');
+        if(googleReviewLink) {
+          googleReviewLink.innerHTML = (selectedLanguage === 'tr') ?
             '<i class="fab fa-google"></i> Google Yorum' :
             '<i class="fab fa-google"></i> Google Review';
-      }
-    }
-
-    // Menü öğelerini Firebase'den çekip kategoriye göre ayırma
-    async function fetchMenuItems() {
-      const menuContent = document.getElementById('menuContent');
-      menuContent.innerHTML = '';
-      const categories = {};
-      try {
-        window.allProducts = [];
-        const [catSnapshot, productSnapshot] = await Promise.all([
-          database.ref('Categories6').orderByChild('order').once('value'),
-          database.ref('Products6').once('value')
-        ]);
-        const categoryData = catSnapshot.val() || {};
-        const productsData = productSnapshot.val() || {};
-        for (let productId in productsData) {
-          const product = productsData[productId];
-          if (product && product.categoryId) {
-            window.allProducts.push(product);
-            const categoryId = product.categoryId;
-            const categoryInfo = categoryData[categoryId];
-            if (!categoryInfo) {
-              console.warn(`Kategori bulunamadı: ${categoryId}`);
-              continue;
-            }
-            if (!categories[categoryId]) {
-              categories[categoryId] = {
-                info: { ...categoryInfo, id: categoryId },
-                products: []
-              };
-            }
-            categories[categoryId].products.push(product);
-          }
         }
-        const sortedCategories = Object.values(categories).sort((a, b) => {
-          return (a.info.order || 0) - (b.info.order || 0);
+      }
+
+      async function fetchMenuItems() {
+        const menuContent = document.getElementById('menuContent');
+        menuContent.innerHTML = '';
+        const categories = {};
+        try {
+          window.allProducts = [];
+          const [catSnapshot, productSnapshot] = await Promise.all([
+            database.ref('Categories6').orderByChild('order').once('value'),
+            database.ref('Products6').once('value')
+          ]);
+          const categoryData = catSnapshot.val() || {};
+          const productsData = productSnapshot.val() || {};
+          for (let productId in productsData) {
+            const product = productsData[productId];
+            if (product && product.categoryId) {
+              window.allProducts.push(product);
+              const categoryId = product.categoryId;
+              const categoryInfo = categoryData[categoryId];
+              if (!categoryInfo) {
+                console.warn(`Kategori bulunamadı: ${categoryId}`);
+                continue;
+              }
+              if (!categories[categoryId]) {
+                categories[categoryId] = {
+                  info: { ...categoryInfo, id: categoryId },
+                  products: []
+                };
+              }
+              categories[categoryId].products.push(product);
+            }
+          }
+          const sortedCategories = Object.values(categories).sort((a, b) => (a.info.order || 0) - (b.info.order || 0));
+          sortedCategories.forEach(category => {
+            const categoryInfo = category.info;
+            const categoryProducts = category.products;
+            const categoryName = categoryInfo['name_' + selectedLanguage] || categoryInfo['name_tr'] || 'Kategori İsmi';
+            const categoryImageUrl = categoryInfo.imageUrl || '';
+            const categoryDiv = document.createElement('div');
+            categoryDiv.classList.add('category-container');
+            const categoryTitleDiv = document.createElement('div');
+            categoryTitleDiv.classList.add('category');
+            categoryTitleDiv.style.backgroundImage = `url(${categoryImageUrl})`;
+            const categoryTitle = document.createElement('h2');
+            categoryTitle.textContent = categoryName;
+            categoryTitleDiv.addEventListener('click', () => { toggleMenu(categoryInfo.id); });
+            categoryTitleDiv.appendChild(categoryTitle);
+            const menuItemsDiv = document.createElement('div');
+            menuItemsDiv.classList.add('menu-items');
+            menuItemsDiv.id = categoryInfo.id;
+            categoryProducts.forEach(product => {
+              const menuItemDiv = document.createElement('div');
+              menuItemDiv.classList.add('menu-item');
+              const productName = product['name_' + selectedLanguage] || product['name_tr'] || product.name || 'Ürün İsmi';
+              const productDescription = product['description_' + selectedLanguage] || product['description_tr'] || product.description || '';
+              const img = document.createElement('img');
+              img.src = product.imageUrl || '';
+              img.alt = productName;
+              img.loading = 'lazy';
+              img.style.filter = 'blur(10px)';
+              img.onload = () => { img.style.filter = 'blur(0)'; };
+              img.addEventListener('click', () => { openImageModal(product.imageUrl, productName); });
+              const itemInfoDiv = document.createElement('div');
+              itemInfoDiv.classList.add('item-info');
+              const h3 = document.createElement('h3');
+              h3.textContent = productName;
+              const p = document.createElement('p');
+              p.textContent = productDescription;
+              itemInfoDiv.appendChild(h3);
+              itemInfoDiv.appendChild(p);
+              const priceSpan = document.createElement('span');
+              priceSpan.classList.add('price');
+              priceSpan.textContent = `₺${product.price}`;
+              menuItemDiv.appendChild(img);
+              menuItemDiv.appendChild(itemInfoDiv);
+              menuItemDiv.appendChild(priceSpan);
+              menuItemsDiv.appendChild(menuItemDiv);
+            });
+            categoryDiv.appendChild(categoryTitleDiv);
+            categoryDiv.appendChild(menuItemsDiv);
+            menuContent.appendChild(categoryDiv);
+          });
+        } catch (error) {
+          console.error('Veriler alınırken hata oluştu:', error);
+        }
+      }
+
+      function toggleMenu(categoryId) {
+        const menu = document.getElementById(categoryId);
+        if (menu.style.display === "block") {
+          menu.style.display = "none";
+        } else {
+          document.querySelectorAll('.menu-items').forEach(m => { m.style.display = 'none'; });
+          menu.style.display = "block";
+        }
+      }
+
+      function openImageModal(imageUrl, altText) {
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImage');
+        modal.style.display = "block";
+        modalImg.src = imageUrl;
+        modalImg.alt = altText;
+      }
+
+      // Modal kapatma
+      const modal = document.getElementById('imageModal');
+      const modalClose = document.getElementById('modalClose');
+      modalClose.onclick = function() { modal.style.display = "none"; };
+      window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } };
+
+      // Header scroll animasyonu (GPU hızlandırmasıyla)
+      window.addEventListener('scroll', function() {
+        const header = document.getElementById('header');
+        if (window.scrollY > 50) {
+          header.classList.add('scrolled');
+        } else {
+          header.classList.remove('scrolled');
+        }
+      });
+
+      // Arama alanı otomatik arama
+      document.getElementById('searchInput').addEventListener('input', function() {
+        const query = this.value.trim();
+        if(query === '') {
+          document.getElementById('searchResults').innerHTML = '';
+          document.getElementById('menuContent').style.display = 'block';
+        } else {
+          document.getElementById('menuContent').style.display = 'none';
+          searchMenu();
+        }
+      });
+
+      function searchMenu() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const resultsContainer = document.getElementById('searchResults');
+        resultsContainer.innerHTML = '';
+        if(query === '') {
+          document.getElementById('menuContent').style.display = 'block';
+          return;
+        }
+        const matchingProducts = window.allProducts.filter(product => {
+          const name = ((product['name_' + selectedLanguage] || product.name || '')).toLowerCase();
+          return name.includes(query);
         });
-        for (let category of sortedCategories) {
-          const categoryInfo = category.info;
-          const categoryProducts = category.products;
-          const categoryName = categoryInfo['name_' + selectedLanguage] || categoryInfo['name_tr'] || 'Kategori İsmi';
-          const categoryImageUrl = categoryInfo.imageUrl || '';
-          const categoryDiv = document.createElement('div');
-          categoryDiv.classList.add('category-container');
-          const categoryTitleDiv = document.createElement('div');
-          categoryTitleDiv.classList.add('category');
-          categoryTitleDiv.style.backgroundImage = `url(${categoryImageUrl})`;
-          const categoryTitle = document.createElement('h2');
-          categoryTitle.textContent = categoryName;
-          categoryTitleDiv.addEventListener('click', () => { toggleMenu(categoryInfo.id); });
-          categoryTitleDiv.appendChild(categoryTitle);
-          const menuItemsDiv = document.createElement('div');
-          menuItemsDiv.classList.add('menu-items');
-          menuItemsDiv.id = categoryInfo.id;
-          categoryProducts.forEach(product => {
-            const menuItemDiv = document.createElement('div');
-            menuItemDiv.classList.add('menu-item');
+        if(matchingProducts.length === 0) {
+          resultsContainer.innerHTML = '<p>Aradığınız ürün bulunamadı.</p>';
+        } else {
+          matchingProducts.forEach(product => {
             const productName = product['name_' + selectedLanguage] || product['name_tr'] || product.name || 'Ürün İsmi';
             const productDescription = product['description_' + selectedLanguage] || product['description_tr'] || product.description || '';
+            const menuItemDiv = document.createElement('div');
+            menuItemDiv.classList.add('menu-item');
             const img = document.createElement('img');
             img.src = product.imageUrl || '';
             img.alt = productName;
-            img.onload = () => { img.style.filter = 'blur(0)'; };
-            img.style.filter = 'blur(10px)';
+            img.loading = 'lazy';
             img.addEventListener('click', () => { openImageModal(product.imageUrl, productName); });
             const itemInfoDiv = document.createElement('div');
             itemInfoDiv.classList.add('item-info');
@@ -414,108 +511,11 @@
             menuItemDiv.appendChild(img);
             menuItemDiv.appendChild(itemInfoDiv);
             menuItemDiv.appendChild(priceSpan);
-            menuItemsDiv.appendChild(menuItemDiv);
+            resultsContainer.appendChild(menuItemDiv);
           });
-          categoryDiv.appendChild(categoryTitleDiv);
-          categoryDiv.appendChild(menuItemsDiv);
-          menuContent.appendChild(categoryDiv);
         }
-      } catch (error) {
-        console.error('Veriler alınırken hata oluştu:', error);
       }
-    }
-
-    // Menü öğesini aç/kapat
-    function toggleMenu(categoryId) {
-      const menu = document.getElementById(categoryId);
-      if (menu.style.display === "block") {
-        menu.style.display = "none";
-      } else {
-        document.querySelectorAll('.menu-items').forEach(m => { m.style.display = 'none'; });
-        menu.style.display = "block";
-      }
-    }
-
-    // Ürün resmi modalını açma
-    function openImageModal(imageUrl, altText) {
-      const modal = document.getElementById('imageModal');
-      const modalImg = document.getElementById('modalImage');
-      modal.style.display = "block";
-      modalImg.src = imageUrl;
-      modalImg.alt = altText;
-    }
-
-    // Modalı kapatma
-    const modal = document.getElementById('imageModal');
-    const modalClose = document.getElementById('modalClose');
-    modalClose.onclick = function() { modal.style.display = "none"; };
-    window.onclick = function(event) { if (event.target == modal) { modal.style.display = "none"; } };
-
-    // Header scroll animasyonu
-    window.addEventListener('scroll', function() {
-      const header = document.getElementById('header');
-      if (window.scrollY > 50) {
-        header.classList.add('scrolled');
-      } else {
-        header.classList.remove('scrolled');
-      }
-    });
-
-    // Arama alanı otomatik arama (input eventinde)
-    document.getElementById('searchInput').addEventListener('input', function() {
-      const query = this.value.trim();
-      if(query === '') {
-        document.getElementById('searchResults').innerHTML = '';
-        document.getElementById('menuContent').style.display = 'block';
-      } else {
-        document.getElementById('menuContent').style.display = 'none';
-        searchMenu();
-      }
-    });
-
-    // Arama fonksiyonu
-    function searchMenu() {
-      const query = document.getElementById('searchInput').value.toLowerCase().trim();
-      const resultsContainer = document.getElementById('searchResults');
-      resultsContainer.innerHTML = '';
-      if(query === '') {
-        document.getElementById('menuContent').style.display = 'block';
-        return;
-      }
-      const matchingProducts = window.allProducts.filter(product => {
-        const name = ((product['name_' + selectedLanguage] || product.name || '')).toLowerCase();
-        return name.includes(query);
-      });
-      if(matchingProducts.length === 0) {
-        resultsContainer.innerHTML = '<p>Aradığınız ürün bulunamadı.</p>';
-      } else {
-        matchingProducts.forEach(product => {
-          const productName = product['name_' + selectedLanguage] || product['name_tr'] || product.name || 'Ürün İsmi';
-          const productDescription = product['description_' + selectedLanguage] || product['description_tr'] || product.description || '';
-          const menuItemDiv = document.createElement('div');
-          menuItemDiv.classList.add('menu-item');
-          const img = document.createElement('img');
-          img.src = product.imageUrl || '';
-          img.alt = productName;
-          img.addEventListener('click', () => { openImageModal(product.imageUrl, productName); });
-          const itemInfoDiv = document.createElement('div');
-          itemInfoDiv.classList.add('item-info');
-          const h3 = document.createElement('h3');
-          h3.textContent = productName;
-          const p = document.createElement('p');
-          p.textContent = productDescription;
-          itemInfoDiv.appendChild(h3);
-          itemInfoDiv.appendChild(p);
-          const priceSpan = document.createElement('span');
-          priceSpan.classList.add('price');
-          priceSpan.textContent = `₺${product.price}`;
-          menuItemDiv.appendChild(img);
-          menuItemDiv.appendChild(itemInfoDiv);
-          menuItemDiv.appendChild(priceSpan);
-          resultsContainer.appendChild(menuItemDiv);
-        });
-      }
-    }
+    };
   </script>
 </body>
 </html>
